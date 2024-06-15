@@ -13,6 +13,7 @@ type CartRepository struct {
 
 type CartRepositoryImpl interface {
 	GetCartByCustomerID(customerID uint) (*model.Cart, error)
+	ClearCart(cartID uint) error
 	CreateCart(cart *model.Cart) error
 	CreateCartItem(cartID, productID uint, quantity uint) error
 	DeleteCartItem(cartID, productID uint) error
@@ -49,6 +50,10 @@ func (cartRepo *CartRepository) CreateCartItem(cartID, productID uint, quantity 
 		Quantity:  quantity,
 	}
 	return cartRepo.db.Create(cartItem).Error
+}
+
+func (cartRepo *CartRepository) ClearCart(cartID uint) error {
+	return cartRepo.db.Where("cart_id = ?", cartID).Delete(&model.CartItem{}).Error
 }
 
 // DeleteCartItem removes an item from the cart.

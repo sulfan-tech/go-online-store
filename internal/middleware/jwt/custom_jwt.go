@@ -19,7 +19,7 @@ type contextKey string
 const (
 	userKey   contextKey = "user"
 	emailKey  contextKey = "email"
-	userIdKey contextKey = "id"
+	userIdKey contextKey = "customer_id"
 )
 
 // User represents the user information stored in the context.
@@ -87,7 +87,7 @@ func ValidateJWT(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		// Extract and convert id from subClaim to uint
-		idFloat, ok := subClaim["id"].(float64)
+		idFloat, ok := subClaim["customer_id"].(float64)
 		if !ok {
 			return c.JSON(http.StatusInternalServerError, "Failed to get id from sub claim")
 		}

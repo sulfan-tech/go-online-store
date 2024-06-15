@@ -2,11 +2,10 @@ package model
 
 import (
 	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
 )
 
 type Customer struct {
-	gorm.Model
+	ID       uint   `gorm:"column:customer_id" json:"customer_id"`
 	UserName string `gorm:"column:username" json:"username"`
 	Email    string `gorm:"unique;not null" json:"email"`
 	Password string `gorm:"not null" json:"-"`

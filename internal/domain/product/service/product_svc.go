@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"go-online-store/internal/domain/product/model"
 	"go-online-store/internal/domain/product/repository"
 )
@@ -32,9 +31,13 @@ func (productService *ProductService) GetProductListByCategory(ctx context.Conte
 		return nil, err
 	}
 
-	fmt.Println("MASUK SINI")
-	test := ctx.Value("id")
-	fmt.Println(test)
-
 	return productList, nil
+}
+
+func (productService *ProductService) GetProductById(ctx context.Context, productId uint) (*model.Product, error) {
+	product, err := productService.repoProduct.GetByID(productId)
+	if err != nil {
+		return nil, err
+	}
+	return product, nil
 }
