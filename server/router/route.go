@@ -21,7 +21,7 @@ func RegisterRouter(e *echo.Echo) *echo.Echo {
 	userService := customerService.NewInstanceUserService()
 	productService := productService.NewInstanceProductService()
 	cartService := cartService.NewInstanceCartService()
-	orderService := orderService.NewOrderService()
+	orderService, _ := orderService.NewOrderService()
 
 	// Init Handler
 	customerHandler := customer.NewCustomerHandler(userService)
@@ -42,10 +42,11 @@ func RegisterRouter(e *echo.Echo) *echo.Echo {
 	// Routes for cart
 	v1.GET("/cart", jwt.ValidateJWT(cartHandler.GetCartHandler))
 	v1.POST("/cart", jwt.ValidateJWT(cartHandler.AddToCartHandler))
-	v1.DELETE("/cart/:productId", jwt.ValidateJWT(cartHandler.RemoveFromCartHandler))
+	v1.DELETE("/cart", jwt.ValidateJWT(cartHandler.RemoveFromCartHandler))
 
 	// Routes for order
 	v1.POST("/checkout", jwt.ValidateJWT(orderHandler.CheckoutHandler))
+	v1.POST("/checkout/paid", jwt.ValidateJWT(orderHandler.TransactionPaidHandler))
 
 	return e
 }

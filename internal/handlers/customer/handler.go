@@ -26,7 +26,6 @@ func NewCustomerHandler(customerService service.CustomerServiceImpl) *CustomerHa
 
 // CustomerLogin handles user authentication
 func (h *CustomerHandler) CustomerLogin(c echo.Context) error {
-
 	var loginRequest LoginRequest
 	if err := c.Bind(&loginRequest); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request payload")
@@ -57,7 +56,6 @@ func (h *CustomerHandler) CustomerLogin(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, response)
-
 }
 
 // CustomerRegister handles user registration
@@ -67,11 +65,29 @@ func (h *CustomerHandler) CustomerRegister(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request payload")
 	}
 
+	// Validate registerRequest fields
+	if err := c.Validate(registerRequest); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Validation error: "+err.Error())
+	}
+
+	// Parse date_of_birth string to time.Time
+	dateOfBirth, err := registerRequest.ParseDateOfBirth()
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid date_of_birth format")
+	}
+
 	// Create new user
 	newUser := model.Customer{
-		Email:    registerRequest.Email,
-		Password: registerRequest.Password,
-		UserName: registerRequest.Name,
+		Email:       registerRequest.Email,
+		Password:    registerRequest.Password,
+		UserName:    registerRequest.Username,
+		FullName:    registerRequest.FullName,
+		Phone:       registerRequest.Phone,
+		PostalCode:  registerRequest.PostalCode,
+		Address:     registerRequest.Address,
+		City:        registerRequest.City,
+		Country:     registerRequest.Country,
+		DateOfBirth: dateOfBirth,
 	}
 
 	newUser.SetPassword(registerRequest.Password)

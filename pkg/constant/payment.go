@@ -1,0 +1,7 @@
+package constant
+
+const (
+	PAYMENT_STATUS_PENDING = "PENDING"
+	PAYMENT_STATUS_PAID    = "PAID"
+	PAYMENT_STATUS_FAILED  = "FAILED"
+)

@@ -1,24 +1,24 @@
 package model
 
 import (
+	"go-online-store/internal/domain/product/model"
 	"time"
 )
 
-type CartItem struct {
-	CartItemID uint `gorm:"primaryKey;column:cart_item_id"`
-	CartID     uint `gorm:"index;column:cart_id"`
-	ProductID  uint `gorm:"index;column:product_id"`
-	Quantity   uint
-	CreatedAt  time.Time `gorm:"column:created_at"`
-	UpdatedAt  time.Time `gorm:"column:updated_at"`
+type Cart struct {
+	ID         uint       `json:"id" gorm:"primaryKey"`
+	CustomerID uint       `json:"customer_id" gorm:"not null"`
+	Items      []CartItem `json:"items" gorm:"foreignKey:CartID"`
+	CreatedAt  time.Time  `json:"created_at"`
+	UpdatedAt  time.Time  `json:"updated_at"`
 }
 
-type Cart struct {
-	CartID     uint       `gorm:"primaryKey;column:cart_id"`
-	CustomerID uint       `gorm:"index;column:customer_id"`
-	CreatedAt  time.Time  `gorm:"column:created_at"`
-	UpdatedAt  time.Time  `gorm:"column:updated_at"`
-	Items      []CartItem `gorm:"foreignKey:CartID"`
+type CartItem struct {
+	ID        uint          `json:"id" gorm:"primaryKey"`
+	CartID    uint          `json:"cart_id" gorm:"not null"`
+	ProductID uint          `json:"product_id" gorm:"not null"`
+	Quantity  uint          `json:"quantity" gorm:"not null"`
+	Product   model.Product `json:"product" gorm:"foreignKey:ProductID"`
 }
 
 func (CartItem) TableName() string {

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"go-online-store/internal/domain/cart/model"
 	"go-online-store/internal/domain/cart/repository"
+	repoProduct "go-online-store/internal/domain/product/repository"
 	"go-online-store/internal/middleware/jwt"
 	customErrors "go-online-store/pkg/errors"
 
@@ -12,7 +13,8 @@ import (
 )
 
 type CartService struct {
-	repoCart repository.CartRepositoryImpl
+	repoCart    repository.CartRepositoryImpl
+	repoProduct repoProduct.ProductRepositoryImpl
 }
 
 type CartServiceImpl interface {
@@ -26,14 +28,20 @@ func NewInstanceCartService() CartServiceImpl {
 	if err != nil {
 		return nil
 	}
+
+	productRepo, err := repoProduct.NewProductRepository()
+	if err != nil {
+		return nil
+	}
 	return &CartService{
-		repoCart: cartRepo,
+		repoCart:    cartRepo,
+		repoProduct: productRepo,
 	}
 }
 
 // AddToCart adds a product to the customer's shopping cart.
 func (cartService *CartService) AddToCart(ctx context.Context, productID, quantity uint) error {
-	customerCtx, ok := jwt.FromUser(ctx)
+	customerCtx, ok := jwt.FromCustomer(ctx)
 	if !ok {
 		return customErrors.ErrCustomerIDNotFound
 	}
@@ -54,8 +62,16 @@ func (cartService *CartService) AddToCart(ctx context.Context, productID, quanti
 		cart = newCart
 	}
 
+	// check item stok available or not ?
+	if product, err := cartService.repoProduct.GetByID(productID); err != nil {
+		if product.Stok == 0 {
+			return customErrors.ErrProductStockNotAvailable
+		}
+		return customErrors.ErrNotFound
+	}
+
 	// Add the product to the cart
-	if err := cartService.repoCart.CreateCartItem(cart.CartID, productID, quantity); err != nil {
+	if err := cartService.repoCart.CreateCartItem(cart.ID, productID, quantity); err != nil {
 		return customErrors.ErrFailedToAddToCart
 	}
 
@@ -64,7 +80,7 @@ func (cartService *CartService) AddToCart(ctx context.Context, productID, quanti
 
 // GetCartByCustomerID retrieves the cart for a specific customer.
 func (cartService *CartService) GetCartByCustomerID(ctx context.Context) (*model.Cart, error) {
-	customerCtx, ok := jwt.FromUser(ctx)
+	customerCtx, ok := jwt.FromCustomer(ctx)
 	if !ok {
 		return nil, customErrors.ErrCustomerIDNotFound
 	}
@@ -79,7 +95,7 @@ func (cartService *CartService) GetCartByCustomerID(ctx context.Context) (*model
 
 // RemoveFromCart removes a product from the customer's shopping cart.
 func (cartService *CartService) RemoveFromCart(ctx context.Context, productID uint) error {
-	customerCtx, ok := jwt.FromUser(ctx)
+	customerCtx, ok := jwt.FromCustomer(ctx)
 	if !ok {
 		return customErrors.ErrCustomerIDNotFound
 	}
@@ -89,7 +105,7 @@ func (cartService *CartService) RemoveFromCart(ctx context.Context, productID ui
 		return customErrors.ErrFailedToRetrieveCart
 	}
 
-	if err := cartService.repoCart.DeleteCartItem(cart.CartID, productID); err != nil {
+	if err := cartService.repoCart.DeleteCartItem(cart.ID, productID); err != nil {
 		return customErrors.ErrFailedToRemoveFromCart
 	}
 

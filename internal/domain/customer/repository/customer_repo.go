@@ -3,6 +3,7 @@ package repository
 import (
 	mysql "go-online-store/config/database/my_sql_db"
 	"go-online-store/internal/domain/customer/model"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -37,6 +38,7 @@ func (customerSql *UserRepository) GetUserByEmail(email string) (model.Customer,
 }
 
 func (customerSql *UserRepository) CreateUser(customer model.Customer) (model.Customer, error) {
+	customer.RegistrationDate = time.Now()
 	err := customerSql.db.Create(&customer).Error
 	if err != nil {
 		return customer, err

@@ -31,9 +31,12 @@ func NewCartRepository() (CartRepositoryImpl, error) {
 // GetCartByCustomerID retrieves a cart by customer ID.
 func (cartRepo *CartRepository) GetCartByCustomerID(customerID uint) (*model.Cart, error) {
 	var cart model.Cart
-	if err := cartRepo.db.Preload("Items").Where("customer_id = ?", customerID).First(&cart).Error; err != nil {
+
+	// Preload both items and their associated products
+	if err := cartRepo.db.Preload("Items").Preload("Items.Product").Where("customer_id = ?", customerID).First(&cart).Error; err != nil {
 		return nil, err
 	}
+
 	return &cart, nil
 }
 

@@ -17,32 +17,33 @@ import (
 type contextKey string
 
 const (
-	userKey   contextKey = "user"
-	emailKey  contextKey = "email"
-	userIdKey contextKey = "customer_id"
+	customerKey      contextKey = "customer"
+	customerEmailKey contextKey = "customer_email"
+	customerIdKey    contextKey = "customer_id"
 )
 
-// User represents the user information stored in the context.
-type User struct {
-	ID    uint
-	Email string
+// Customer represents the customer information stored in the context.
+type Customer struct {
+	ID      uint
+	Email   string
+	Address string
 }
 
-// WithUser stores the user information in the context.
-func WithUser(ctx context.Context, user User) context.Context {
-	return context.WithValue(ctx, userKey, user)
+// WithCustomer stores the customer information in the context.
+func WithCustomer(ctx context.Context, customer Customer) context.Context {
+	return context.WithValue(ctx, customerKey, customer)
 }
 
-// FromUser retrieves the user information from the context.
-func FromUser(ctx context.Context) (User, bool) {
-	user, ok := ctx.Value(userKey).(User)
-	return user, ok
+// FromCustomer retrieves the customer information from the context.
+func FromCustomer(ctx context.Context) (Customer, bool) {
+	customer, ok := ctx.Value(customerKey).(Customer)
+	return customer, ok
 }
 
-// GenerateJWT generates a JWT for the provided user with a custom expiration time.
-func GenerateJWT(user *model.Customer, secret string, expiration time.Duration) (string, error) {
+// GenerateJWT generates a JWT for the provided customer with a custom expiration time.
+func GenerateJWT(customer *model.Customer, secret string, expiration time.Duration) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": user,
+		"sub": customer,
 		"exp": time.Now().Add(expiration).Unix(),
 	})
 
@@ -61,19 +62,19 @@ func ValidateJWT(next echo.HandlerFunc) echo.HandlerFunc {
 		splitToken := strings.Split(authToken, "Bearer ")
 
 		if len(splitToken) < 2 {
-			return c.JSON(http.StatusUnauthorized, "User Unauthorized")
+			return c.JSON(http.StatusUnauthorized, "Customer Unauthorized")
 		}
 
 		token := splitToken[1]
 		t, err := validateToken(token)
 
 		if err != nil {
-			return c.JSON(http.StatusUnauthorized, "User Unauthorized: "+err.Error())
+			return c.JSON(http.StatusUnauthorized, "Customer Unauthorized: "+err.Error())
 		}
 
 		claims, ok := t.Claims.(jwt.MapClaims)
 		if !ok {
-			return c.JSON(http.StatusInternalServerError, "Failed to get user information from token")
+			return c.JSON(http.StatusInternalServerError, "Failed to get customer information from token")
 		}
 
 		subClaim, ok := claims["sub"].(map[string]interface{})
@@ -86,20 +87,26 @@ func ValidateJWT(next echo.HandlerFunc) echo.HandlerFunc {
 			return c.JSON(http.StatusInternalServerError, "Failed to get email from sub claim")
 		}
 
+		addressFromSubClaim, ok := subClaim["address"].(string)
+		if !ok {
+			return c.JSON(http.StatusInternalServerError, "Failed to get address from sub claim")
+		}
+
 		// Extract and convert id from subClaim to uint
-		idFloat, ok := subClaim["customer_id"].(float64)
+		idFloat, ok := subClaim["id"].(float64)
 		if !ok {
 			return c.JSON(http.StatusInternalServerError, "Failed to get id from sub claim")
 		}
 		userIdFromSubClaim := uint(idFloat)
 
-		// Create a user object
-		user := User{
-			ID:    userIdFromSubClaim,
-			Email: emailFromSubClaim,
+		// Create a customer object
+		customer := Customer{
+			ID:      userIdFromSubClaim,
+			Email:   emailFromSubClaim,
+			Address: addressFromSubClaim,
 		}
 
-		ctx := WithUser(c.Request().Context(), user)
+		ctx := WithCustomer(c.Request().Context(), customer)
 		c.SetRequest(c.Request().WithContext(ctx))
 
 		return next(c)

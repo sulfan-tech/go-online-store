@@ -2,6 +2,7 @@ package order
 
 import (
 	"net/http"
+	"strconv"
 
 	"go-online-store/internal/domain/order/service"
 
@@ -27,4 +28,19 @@ func (h *OrderHandler) CheckoutHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, order)
+}
+
+func (h *OrderHandler) TransactionPaidHandler(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	orderId := c.QueryParam("order_id")
+
+	id, _ := strconv.Atoi(orderId)
+
+	err := h.orderService.UpdatePaymentStatus(ctx, uint(id))
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(http.StatusOK, "Payment Successfully")
 }

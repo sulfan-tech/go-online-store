@@ -1,0 +1,6 @@
+package constant
+
+const (
+	ORDER_STATUS_PENDING = "PENDING"
+	ORDER_STATUS_SUCCESS = "SUCCESS"
+)
