@@ -5,6 +5,7 @@ import (
 
 	"go-online-store/internal/domain/product/service"
 	"go-online-store/pkg/errors"
+	_ "go-online-store/server/cmd/docs"
 
 	"github.com/labstack/echo/v4"
 )
@@ -18,6 +19,15 @@ func NewProductHandler(productService service.ProductServiceImpl) *ProductHandle
 		productService: productService,
 	}
 }
+
+// @Summary Get products by category
+// @Tags Product
+// @Description Retrieve a list of products filtered by category
+// @Produce json
+// @Param category query string false "Category filter"
+// @Success 200 {object} []Product
+// @Failure 400 {object} ErrorResponse
+// @Router /v1/products [get]
 
 // GetProductsByCategoryHandler handles the request to fetch products by category
 func (h *ProductHandler) GetProductsByCategoryHandler(c echo.Context) error {

@@ -12,7 +12,10 @@ import (
 	"go-online-store/internal/middleware/jwt"
 	"go-online-store/pkg/logger"
 
+	_ "go-online-store/server/cmd/docs"
+
 	"github.com/labstack/echo/v4"
+	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
 func RegisterRouter(e *echo.Echo, log *logger.Logger) *echo.Echo {
@@ -48,6 +51,9 @@ func RegisterRouter(e *echo.Echo, log *logger.Logger) *echo.Echo {
 	// Routes for order
 	v1.POST("/checkout", jwt.ValidateJWT(orderHandler.CheckoutHandler))
 	v1.POST("/checkout/paid", jwt.ValidateJWT(orderHandler.TransactionPaidHandler))
+
+	// Swagger endpoint
+	v1.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	return e
 }
