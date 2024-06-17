@@ -13,6 +13,7 @@ type CartRepository struct {
 
 type CartRepositoryImpl interface {
 	GetCartByCustomerID(customerID uint) (*model.Cart, error)
+	ClearCart(cartID uint) error
 	CreateCart(cart *model.Cart) error
 	CreateCartItem(cartID, productID uint, quantity uint) error
 	DeleteCartItem(cartID, productID uint) error
@@ -30,18 +31,19 @@ func NewCartRepository() (CartRepositoryImpl, error) {
 // GetCartByCustomerID retrieves a cart by customer ID.
 func (cartRepo *CartRepository) GetCartByCustomerID(customerID uint) (*model.Cart, error) {
 	var cart model.Cart
-	if err := cartRepo.db.Preload("Items").Where("customer_id = ?", customerID).First(&cart).Error; err != nil {
+
+	// Preload both items and their associated products
+	if err := cartRepo.db.Preload("Items").Preload("Items.Product").Where("customer_id = ?", customerID).First(&cart).Error; err != nil {
 		return nil, err
 	}
+
 	return &cart, nil
 }
 
-// CreateCart initializes a new cart for a customer.
 func (cartRepo *CartRepository) CreateCart(cart *model.Cart) error {
 	return cartRepo.db.Create(cart).Error
 }
 
-// CreateCartItem adds a new item to the cart.
 func (cartRepo *CartRepository) CreateCartItem(cartID, productID uint, quantity uint) error {
 	cartItem := &model.CartItem{
 		CartID:    cartID,
@@ -51,7 +53,10 @@ func (cartRepo *CartRepository) CreateCartItem(cartID, productID uint, quantity 
 	return cartRepo.db.Create(cartItem).Error
 }
 
-// DeleteCartItem removes an item from the cart.
+func (cartRepo *CartRepository) ClearCart(cartID uint) error {
+	return cartRepo.db.Where("cart_id = ?", cartID).Delete(&model.CartItem{}).Error
+}
+
 func (cartRepo *CartRepository) DeleteCartItem(cartID, productID uint) error {
 	return cartRepo.db.Delete(&model.CartItem{}, "cart_id = ? AND product_id = ?", cartID, productID).Error
 }

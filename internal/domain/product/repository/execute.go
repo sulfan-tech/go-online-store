@@ -13,7 +13,7 @@ type ProductRepository struct {
 
 type ProductRepositoryImpl interface {
 	Create(product *model.Product) error
-	Update(product *model.Product) error
+	UpdateStock(productID uint, newStock uint) error
 	Delete(id uint) error
 	GetByID(id uint) (*model.Product, error)
 	GetProductsByCategory(category string) ([]*model.Product, error)
@@ -35,9 +35,14 @@ func (repo *ProductRepository) Create(product *model.Product) error {
 	return result.Error
 }
 
-func (repo *ProductRepository) Update(product *model.Product) error {
-	result := repo.db.Save(product)
-	return result.Error
+func (repo *ProductRepository) UpdateStock(productID uint, newStock uint) error {
+	result := repo.db.Model(&model.Product{}).
+		Where("id = ?", productID).
+		Update("stok", newStock)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
 }
 
 func (repo *ProductRepository) Delete(id uint) error {

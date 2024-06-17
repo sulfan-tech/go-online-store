@@ -1,15 +1,24 @@
 package model
 
 import (
+	"time"
+
 	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
 )
 
 type Customer struct {
-	gorm.Model
-	UserName string `gorm:"column:username" json:"username"`
-	Email    string `gorm:"unique;not null" json:"email"`
-	Password string `gorm:"not null" json:"-"`
+	ID               uint      `gorm:"column:id" json:"id"`
+	UserName         string    `gorm:"column:username" json:"username"`
+	Email            string    `gorm:"unique;not null" json:"email"`
+	Password         string    `gorm:"not null" json:"-"`
+	FullName         string    `gorm:"column:full_name" json:"full_name"`
+	Phone            string    `gorm:"column:phone" json:"phone"`
+	Address          string    `gorm:"column:address" json:"address"`
+	City             string    `gorm:"column:city" json:"city"`
+	PostalCode       string    `gorm:"column:postal_code" json:"postal_code"`
+	Country          string    `gorm:"column:country" json:"country"`
+	DateOfBirth      time.Time `gorm:"column:date_of_birth" json:"date_of_birth"`
+	RegistrationDate time.Time `json:"registration_date"`
 }
 
 func (u *Customer) SetPassword(password string) error {

@@ -9,18 +9,20 @@ import (
 
 // Custom error types
 var (
-	ErrBadRequest             = errors.New("bad request")
-	ErrUnauthorized           = errors.New("unauthorized")
-	ErrNotFound               = errors.New("not found")
-	ErrInternalServerError    = errors.New("internal server error")
-	ErrCustomerIDNotFound     = errors.New("customer ID not found")
-	ErrInvalidCustomerID      = errors.New("invalid customer ID")
-	ErrCartNotFound           = errors.New("cart not found")
-	ErrProductAlreadyInCart   = errors.New("product already in cart")
-	ErrFailedToCreateCart     = errors.New("failed to create cart")
-	ErrFailedToAddToCart      = errors.New("failed to add to cart")
-	ErrFailedToRemoveFromCart = errors.New("failed to remove from cart")
-	ErrFailedToRetrieveCart   = errors.New("failed to retrieve cart")
+	ErrBadRequest               = errors.New("bad request")
+	ErrUnauthorized             = errors.New("unauthorized")
+	ErrNotFound                 = errors.New("not found")
+	ErrInternalServerError      = errors.New("internal server error")
+	ErrCartIsEmpty              = errors.New("cart is empty")
+	ErrCustomerIDNotFound       = errors.New("customer ID not found")
+	ErrInvalidCustomerID        = errors.New("invalid customer ID")
+	ErrCartNotFound             = errors.New("cart not found")
+	ErrProductAlreadyInCart     = errors.New("product already in cart")
+	ErrFailedToCreateCart       = errors.New("failed to create cart")
+	ErrFailedToAddToCart        = errors.New("failed to add to cart")
+	ErrFailedToRemoveFromCart   = errors.New("failed to remove from cart")
+	ErrFailedToRetrieveCart     = errors.New("failed to retrieve cart")
+	ErrProductStockNotAvailable = errors.New("product stok not available")
 )
 
 // HTTPErrorHandler maps service errors to HTTP errors
@@ -50,6 +52,10 @@ func HTTPErrorHandler(err error) *echo.HTTPError {
 		return echo.NewHTTPError(http.StatusInternalServerError, ErrFailedToRemoveFromCart.Error())
 	case errors.Is(err, ErrFailedToRetrieveCart):
 		return echo.NewHTTPError(http.StatusInternalServerError, ErrFailedToRetrieveCart.Error())
+	case errors.Is(err, ErrCartIsEmpty):
+		return echo.NewHTTPError(http.StatusBadRequest, ErrCartIsEmpty.Error())
+	case errors.Is(err, ErrProductStockNotAvailable):
+		return echo.NewHTTPError(http.StatusNotFound, ErrProductStockNotAvailable.Error())
 	default:
 		return echo.NewHTTPError(http.StatusInternalServerError, ErrInternalServerError.Error())
 	}

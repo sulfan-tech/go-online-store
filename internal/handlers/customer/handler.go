@@ -26,13 +26,11 @@ func NewCustomerHandler(customerService service.CustomerServiceImpl) *CustomerHa
 
 // CustomerLogin handles user authentication
 func (h *CustomerHandler) CustomerLogin(c echo.Context) error {
-
 	var loginRequest LoginRequest
 	if err := c.Bind(&loginRequest); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request payload")
 	}
 
-	// Call customerService to authenticate user
 	customerAuth, err := h.customerService.CustomerLogin(loginRequest.Email, loginRequest.Password)
 	if err != nil {
 		switch {
@@ -57,7 +55,6 @@ func (h *CustomerHandler) CustomerLogin(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, response)
-
 }
 
 // CustomerRegister handles user registration
@@ -67,18 +64,32 @@ func (h *CustomerHandler) CustomerRegister(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request payload")
 	}
 
-	// Create new user
+	if err := c.Validate(registerRequest); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Validation error: "+err.Error())
+	}
+
+	dateOfBirth, err := registerRequest.ParseDateOfBirth()
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid date_of_birth format")
+	}
+
 	newUser := model.Customer{
-		Email:    registerRequest.Email,
-		Password: registerRequest.Password,
-		UserName: registerRequest.Name,
+		Email:       registerRequest.Email,
+		Password:    registerRequest.Password,
+		UserName:    registerRequest.Username,
+		FullName:    registerRequest.FullName,
+		Phone:       registerRequest.Phone,
+		PostalCode:  registerRequest.PostalCode,
+		Address:     registerRequest.Address,
+		City:        registerRequest.City,
+		Country:     registerRequest.Country,
+		DateOfBirth: dateOfBirth,
 	}
 
 	newUser.SetPassword(registerRequest.Password)
 
 	createdUser, err := h.customerService.CustomerRegister(newUser)
 	if err != nil {
-		// Handle specific error case where user with email already exists
 		if strings.Contains(err.Error(), "user with this email already exists") {
 			return echo.NewHTTPError(http.StatusConflict, "User with this email already exists")
 		}
