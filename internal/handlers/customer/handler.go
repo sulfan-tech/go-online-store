@@ -24,6 +24,16 @@ func NewCustomerHandler(customerService service.CustomerServiceImpl) *CustomerHa
 	}
 }
 
+// CustomerLogin godoc
+// @Summary Login as a customer
+// @Description Login with credentials to get JWT token
+// @Tags customer
+// @Accept json
+// @Produce json
+// @Param input body CustomerLoginInput true "Customer login credentials"
+// @Success 200 {object} TokenResponse
+// @Failure 400 {object} ErrorResponse
+// @Router /v1/user/login [post]
 // CustomerLogin handles user authentication
 func (h *CustomerHandler) CustomerLogin(c echo.Context) error {
 	var loginRequest LoginRequest
