@@ -10,6 +10,7 @@ import (
 	"go-online-store/internal/domain/customer/model"
 	"go-online-store/internal/domain/customer/service"
 	"go-online-store/internal/middleware/jwt"
+	_ "go-online-store/server/cmd/docs"
 
 	"github.com/labstack/echo/v4"
 )
@@ -24,17 +25,16 @@ func NewCustomerHandler(customerService service.CustomerServiceImpl) *CustomerHa
 	}
 }
 
-// CustomerLogin godoc
+// CustomerLogin handles customer login.
 // @Summary Login as a customer
 // @Description Login with credentials to get JWT token
 // @Tags customer
 // @Accept json
 // @Produce json
-// @Param input body CustomerLoginInput true "Customer login credentials"
+// @Param input body LoginRequest true "Customer login credentials"
 // @Success 200 {object} TokenResponse
 // @Failure 400 {object} ErrorResponse
 // @Router /v1/user/login [post]
-// CustomerLogin handles user authentication
 func (h *CustomerHandler) CustomerLogin(c echo.Context) error {
 	var loginRequest LoginRequest
 	if err := c.Bind(&loginRequest); err != nil {
@@ -67,7 +67,16 @@ func (h *CustomerHandler) CustomerLogin(c echo.Context) error {
 	return c.JSON(http.StatusOK, response)
 }
 
-// CustomerRegister handles user registration
+// CustomerRegister handles customer registration.
+// @Summary Register as a customer
+// @Description Register a new customer account
+// @Tags customer
+// @Accept json
+// @Produce json
+// @Param input body RegisterRequest true "Customer registration details"
+// @Success 201 {object} Customer
+// @Failure 400 {object} ErrorResponse
+// @Router /v1/user/register [post]
 func (h *CustomerHandler) CustomerRegister(c echo.Context) error {
 	var registerRequest RegisterRequest
 	if err := c.Bind(&registerRequest); err != nil {

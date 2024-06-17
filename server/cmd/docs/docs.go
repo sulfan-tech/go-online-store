@@ -9,10 +9,7 @@ const docTemplate = `{
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
-        "contact": {
-            "name": "Sulfan Aidid",
-            "email": "sulfantech@gmail.com"
-        },
+        "contact": {},
         "version": "{{.Version}}"
     },
     "host": "{{.Host}}",
@@ -20,19 +17,21 @@ const docTemplate = `{
     "paths": {}
 }`
 
+// SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
     Version:          "1.0.0",
     Host:             "localhost:1313",
-    BasePath:         "/v1",
+    BasePath:         "/v1",          
     Schemes:          []string{"http", "https"},
-    Title:            "Go Online Store",
-    Description:      "CRUD online store using golang",
+    Title:            "Online Store API",
+    Description:      "API documentation for Online Store",
     InfoInstanceName: "swagger",
     SwaggerTemplate:  docTemplate,
     LeftDelim:        "{{",
     RightDelim:       "}}",
 }
 
+
 func init() {
-    swag.Register(SwaggerInfo.InstanceName(), SwaggerInfo)
+	swag.Register(SwaggerInfo.InstanceName(), SwaggerInfo)
 }

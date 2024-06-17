@@ -5,7 +5,6 @@ import (
 
 	"go-online-store/internal/domain/product/service"
 	"go-online-store/pkg/errors"
-	_ "go-online-store/server/cmd/docs"
 
 	"github.com/labstack/echo/v4"
 )

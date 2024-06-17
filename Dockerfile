@@ -1,17 +1,23 @@
-FROM golang:1.20-alpine
-
-ENV GO111MODULE=on
-
+# Use the official Golang image to create a build artifact
+FROM golang:1.20-alpine AS builder
 WORKDIR /app
 
-COPY go.mod go.sum .env ./
-
+# Copy go mod and sum files
+COPY go.mod go.sum ./
 RUN go mod download
 
+# Copy the source code
 COPY . .
 
-RUN go build -o main ./server/cmd
+# Build the Go app
+RUN GO111MODULE=on go build -o simple-main ./server/cmd
 
-EXPOSE 8080
+# Use the official Alpine image for a lean production image
+FROM alpine:latest
+WORKDIR /root/
 
-CMD ["./main"]
+# Copy the pre-built binary from the previous stage
+COPY --from=builder /app/simple-main /usr/local/bin/app
+
+# Command to run the executable
+CMD ["/usr/local/bin/app"]

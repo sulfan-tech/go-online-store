@@ -29,6 +29,7 @@ func NewInstanceUserService() CustomerServiceImpl {
 	}
 	return &UserService{
 		repoCustomer: customerRepo,
+		logger:       log,
 	}
 }
 
