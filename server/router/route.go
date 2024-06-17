@@ -10,11 +10,12 @@ import (
 	"go-online-store/internal/handlers/order"
 	"go-online-store/internal/handlers/product"
 	"go-online-store/internal/middleware/jwt"
+	"go-online-store/pkg/logger"
 
 	"github.com/labstack/echo/v4"
 )
 
-func RegisterRouter(e *echo.Echo) *echo.Echo {
+func RegisterRouter(e *echo.Echo, log *logger.Logger) *echo.Echo {
 	// e.Use(jwt.ValidateJWT)
 
 	// Init Service

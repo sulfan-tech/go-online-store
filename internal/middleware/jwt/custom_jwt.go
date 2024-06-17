@@ -13,7 +13,6 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// Define custom context keys
 type contextKey string
 
 const (

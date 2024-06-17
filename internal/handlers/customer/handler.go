@@ -31,7 +31,6 @@ func (h *CustomerHandler) CustomerLogin(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request payload")
 	}
 
-	// Call customerService to authenticate user
 	customerAuth, err := h.customerService.CustomerLogin(loginRequest.Email, loginRequest.Password)
 	if err != nil {
 		switch {
@@ -65,18 +64,15 @@ func (h *CustomerHandler) CustomerRegister(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request payload")
 	}
 
-	// Validate registerRequest fields
 	if err := c.Validate(registerRequest); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Validation error: "+err.Error())
 	}
 
-	// Parse date_of_birth string to time.Time
 	dateOfBirth, err := registerRequest.ParseDateOfBirth()
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid date_of_birth format")
 	}
 
-	// Create new user
 	newUser := model.Customer{
 		Email:       registerRequest.Email,
 		Password:    registerRequest.Password,
@@ -94,7 +90,6 @@ func (h *CustomerHandler) CustomerRegister(c echo.Context) error {
 
 	createdUser, err := h.customerService.CustomerRegister(newUser)
 	if err != nil {
-		// Handle specific error case where user with email already exists
 		if strings.Contains(err.Error(), "user with this email already exists") {
 			return echo.NewHTTPError(http.StatusConflict, "User with this email already exists")
 		}

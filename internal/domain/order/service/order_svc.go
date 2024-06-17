@@ -11,6 +11,8 @@ import (
 	"go-online-store/internal/middleware/jwt"
 	"go-online-store/pkg/constant"
 	customErrors "go-online-store/pkg/errors"
+	"go-online-store/pkg/logger"
+	"os"
 
 	"time"
 
@@ -21,6 +23,7 @@ type OrderService struct {
 	repoOrder   repoOrder.OrderRepositoryImpl
 	repoCart    repoCart.CartRepositoryImpl
 	repoProduct repoProduct.ProductRepositoryImpl
+	logger      *logger.Logger
 }
 
 type OrderServiceImpl interface {
@@ -29,43 +32,52 @@ type OrderServiceImpl interface {
 }
 
 func NewOrderService() (OrderServiceImpl, error) {
+	log := logger.NewLogger(os.Stdout, "OrderService")
 	orderRepo, err := repoOrder.NewInstanceOrderRepository()
 	if err != nil {
-		return nil, fmt.Errorf("failed to create order repository instance: %w", err)
+		log.Error("Failed to initialize order repository: " + err.Error())
+		return nil, err
 	}
 
 	cartRepo, err := repoCart.NewCartRepository()
 	if err != nil {
-		return nil, fmt.Errorf("failed to create cart repository instance: %w", err)
+		log.Error("Failed to initialize cart repository: " + err.Error())
+		return nil, err
 	}
 
 	productRepo, err := repoProduct.NewProductRepository()
 	if err != nil {
-		return nil, fmt.Errorf("failed to create product repository instance: %w", err)
+		log.Error("Failed to initialize product repository: " + err.Error())
+		return nil, err
 	}
 
 	return &OrderService{
 		repoOrder:   orderRepo,
 		repoCart:    cartRepo,
 		repoProduct: productRepo,
+		logger:      log,
 	}, nil
 }
 
 func (svcOrder *OrderService) Checkout(ctx context.Context) (*model.Order, error) {
+	svcOrder.logger.Info("Executing Checkout method")
 	// Retrieve customer information from context
 	customerCtx, ok := jwt.FromCustomer(ctx)
 	if !ok {
+		svcOrder.logger.Info("CustomerId not found on ctx")
 		return nil, customErrors.ErrCustomerIDNotFound
 	}
 
 	// Retrieve the customer's cart
 	cart, err := svcOrder.repoCart.GetCartByCustomerID(customerCtx.ID)
 	if err != nil {
+		svcOrder.logger.Error("Failed to retrieve cart: " + err.Error())
 		return nil, err
 	}
 
 	// Check if the cart is empty
 	if cart.Items == nil || len(cart.Items) == 0 {
+		svcOrder.logger.Error("Cart is empty")
 		return nil, customErrors.ErrCartIsEmpty
 	}
 
@@ -74,13 +86,14 @@ func (svcOrder *OrderService) Checkout(ctx context.Context) (*model.Order, error
 	for _, item := range cart.Items {
 		product, err := svcOrder.repoProduct.GetByID(item.ProductID)
 		if err != nil {
+			svcOrder.logger.Error("Failed to retrieve product: " + err.Error())
 			return nil, err
 		}
 		subtotal += float64(item.Quantity) * product.Price
 	}
 
 	// Calculate shipping fee (optionally with discount)
-	shippingFee := calculateShippingFee(cart.Items, true) // Example: Apply discount if true
+	shippingFee := calculateShippingFee(cart.Items, true) // Contoh: Apply discount if true
 
 	// Calculate total before tax and discount
 	total := subtotal + shippingFee
@@ -117,6 +130,7 @@ func (svcOrder *OrderService) Checkout(ctx context.Context) (*model.Order, error
 	for _, item := range cart.Items {
 		product, err := svcOrder.repoProduct.GetByID(item.ProductID)
 		if err != nil {
+			svcOrder.logger.Error("Failed to retrieve product: " + err.Error())
 			return nil, err
 		}
 
@@ -133,6 +147,7 @@ func (svcOrder *OrderService) Checkout(ctx context.Context) (*model.Order, error
 	// Create the order in the database
 	err = svcOrder.repoOrder.CreateOrder(order)
 	if err != nil {
+		svcOrder.logger.Error("Failed to create order: " + err.Error())
 		return nil, err
 	}
 
@@ -146,16 +161,19 @@ func (svcOrder *OrderService) Checkout(ctx context.Context) (*model.Order, error
 
 	err = svcOrder.repoOrder.CreateTransaction(transaction)
 	if err != nil {
+		svcOrder.logger.Error("Failed to create transaction: " + err.Error())
 		return nil, err
 	}
 
+	svcOrder.logger.Info("Checkout process completed successfully")
 	return order, nil
 }
 
 func (svcOrder *OrderService) UpdatePaymentStatus(ctx context.Context, orderID uint) error {
-	// Retrieve the order and update its payment status
+	svcOrder.logger.Info("Updating payment status")
 	order, err := svcOrder.repoOrder.GetOrderById(orderID)
 	if err != nil {
+		svcOrder.logger.Error("Failed to retrieve order: " + err.Error())
 		return fmt.Errorf("failed to retrieve order: %w", err)
 	}
 
@@ -164,18 +182,20 @@ func (svcOrder *OrderService) UpdatePaymentStatus(ctx context.Context, orderID u
 	order.PaymentDate = time.Now()
 	order.OrderDate = time.Now()
 
-	// Validate the status
 	if order.PaymentStatus != constant.PAYMENT_STATUS_PAID && order.PaymentStatus != constant.PAYMENT_STATUS_PENDING && order.PaymentStatus != constant.PAYMENT_STATUS_FAILED {
+		svcOrder.logger.Error("Invalid payment status: " + order.PaymentStatus)
 		return fmt.Errorf("invalid payment status: %s", order.PaymentStatus)
 	}
 
 	err = svcOrder.repoOrder.UpdateOrder(order)
 	if err != nil {
+		svcOrder.logger.Error("Failed to update order: " + err.Error())
 		return fmt.Errorf("failed to update order: %w", err)
 	}
 
 	transaction, err := svcOrder.repoOrder.GetTransactionByID(order.PaymentID)
 	if err != nil {
+		svcOrder.logger.Error("Failed to retrieve transaction: " + err.Error())
 		return fmt.Errorf("failed to retrieve transaction: %w", err)
 	}
 
@@ -185,6 +205,7 @@ func (svcOrder *OrderService) UpdatePaymentStatus(ctx context.Context, orderID u
 
 	err = svcOrder.repoOrder.UpdateTransaction(transaction)
 	if err != nil {
+		svcOrder.logger.Error("Failed to update transaction: " + err.Error())
 		return fmt.Errorf("failed to update transaction: %w", err)
 	}
 
@@ -227,6 +248,7 @@ func (svcOrder *OrderService) UpdatePaymentStatus(ctx context.Context, orderID u
 		return err
 	}
 
+	svcOrder.logger.Info("Payment status updated successfully")
 	return nil
 }
 

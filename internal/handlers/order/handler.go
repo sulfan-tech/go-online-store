@@ -42,5 +42,5 @@ func (h *OrderHandler) TransactionPaidHandler(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	return c.JSON(http.StatusOK, "Payment Successfully")
+	return c.JSON(http.StatusOK, "Checkout process completed successfully")
 }

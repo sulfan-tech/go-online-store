@@ -1,6 +1,7 @@
 package main
 
 import (
+	"go-online-store/pkg/logger"
 	"go-online-store/server/router"
 	"log"
 	"net/http"
@@ -20,6 +21,7 @@ func main() {
 	if err != nil {
 		log.Fatal("Error loading .env file:" + err.Error())
 	}
+	log := logger.NewLogger(os.Stdout, "Main")
 
 	e := echo.New()
 
@@ -30,7 +32,8 @@ func main() {
 		AllowMethods: []string{http.MethodGet, http.MethodHead, http.MethodPut, http.MethodPatch, http.MethodPost},
 	}))
 
-	e = router.RegisterRouter(e)
+	e = router.RegisterRouter(e, log)
 	e.Logger.Print("Server is running on port: " + os.Getenv("SERVER_PORT"))
+	log.Info("Server is running on port: " + os.Getenv("SERVER_PORT"))
 	e.Logger.Fatal(e.Start(":" + os.Getenv("SERVER_PORT")))
 }

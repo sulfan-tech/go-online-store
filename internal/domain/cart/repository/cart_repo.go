@@ -40,12 +40,10 @@ func (cartRepo *CartRepository) GetCartByCustomerID(customerID uint) (*model.Car
 	return &cart, nil
 }
 
-// CreateCart initializes a new cart for a customer.
 func (cartRepo *CartRepository) CreateCart(cart *model.Cart) error {
 	return cartRepo.db.Create(cart).Error
 }
 
-// CreateCartItem adds a new item to the cart.
 func (cartRepo *CartRepository) CreateCartItem(cartID, productID uint, quantity uint) error {
 	cartItem := &model.CartItem{
 		CartID:    cartID,
@@ -59,7 +57,6 @@ func (cartRepo *CartRepository) ClearCart(cartID uint) error {
 	return cartRepo.db.Where("cart_id = ?", cartID).Delete(&model.CartItem{}).Error
 }
 
-// DeleteCartItem removes an item from the cart.
 func (cartRepo *CartRepository) DeleteCartItem(cartID, productID uint) error {
 	return cartRepo.db.Delete(&model.CartItem{}, "cart_id = ? AND product_id = ?", cartID, productID).Error
 }
