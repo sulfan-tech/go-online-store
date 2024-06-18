@@ -25,4 +25,7 @@ WORKDIR /root/
 # Copy the .env file to the correct location
 COPY --from=builder /app/.env /root/.env
 COPY --from=builder /app/myapp .
+
+EXPOSE 1313 
+
 CMD ["./myapp"]
