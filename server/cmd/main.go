@@ -1,40 +1,64 @@
-package main
+package mysql
 
 import (
-	"go-online-store/pkg/logger"
-	"go-online-store/server/router"
+	"fmt"
 	"log"
-	"net/http"
+	"net/url"
 	"os"
 
-	valiator "go-online-store/internal/middleware/validator"
-
-	"github.com/go-playground/validator/v10"
 	"github.com/joho/godotenv"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
-func main() {
-	// env := "/root/.env"
-	env := ".env"
-	err := godotenv.Load(env)
+var DB *gorm.DB
+
+type DatabaseConfig struct {
+	Username string
+	Password string
+	Host     string
+	Port     string
+	DBName   string
+}
+
+// LoadDatabaseConfig loads the database configuration from environment variables
+func LoadDatabaseConfig() *DatabaseConfig {
+	err := godotenv.Load(".env")
 	if err != nil {
-		log.Fatal("Error loading .env file on main :" + err.Error())
+		log.Println("Error loading .env file on load db, falling back to environment variables")
 	}
-	log := logger.NewLogger(os.Stdout, "Main")
 
-	e := echo.New()
+	dbURL := os.Getenv("CLEARDB_DATABASE_URL")
+	parsedURL, err := url.Parse(dbURL)
+	if err != nil {
+		log.Fatal("Error parsing CLEARDB_DATABASE_URL: ", err)
+	}
 
-	// Register validator
-	e.Validator = &valiator.CustomValidator{Validator: validator.New()}
-	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"*"},
-		AllowMethods: []string{http.MethodGet, http.MethodHead, http.MethodPut, http.MethodPatch, http.MethodPost},
-	}))
+	dbUser := parsedURL.User.Username()
+	dbPass, _ := parsedURL.User.Password()
+	dbHost := parsedURL.Hostname()
+	dbPort := parsedURL.Port()
+	dbName := parsedURL.Path[1:]
 
-	e = router.RegisterRouter(e, log)
-	e.Logger.Print("Server is running on port: " + os.Getenv("SERVER_PORT"))
-	log.Info("Server is running on port: " + os.Getenv("SERVER_PORT"))
-	e.Logger.Fatal(e.Start(":" + os.Getenv("SERVER_PORT")))
+	return &DatabaseConfig{
+		Username: dbUser,
+		Password: dbPass,
+		Host:     dbHost,
+		Port:     dbPort,
+		DBName:   dbName,
+	}
+}
+
+// ConnectDatabase initializes the database connection using GORM
+func ConnectDatabase() (*gorm.DB, error) {
+	cfg := LoadDatabaseConfig()
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=True",
+		cfg.Username, cfg.Password, cfg.Host, cfg.Port, cfg.DBName)
+
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	if err != nil {
+		return nil, err
+	}
+
+	return db, nil
 }
