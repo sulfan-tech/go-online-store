@@ -26,6 +26,6 @@ WORKDIR /root/
 COPY --from=builder /app/.env /root/.env
 COPY --from=builder /app/myapp .
 
-EXPOSE 1313 
+# EXPOSE 1313 
 
 CMD ["./myapp"]
