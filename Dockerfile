@@ -1,28 +1,28 @@
-# Gunakan image resmi Golang sebagai parent image
+# Stage 1: Build the Go application
 FROM golang:1.20-alpine AS builder
 
-# Setel direktori kerja saat ini di dalam container
+# Set the working directory inside the container
 WORKDIR /app
 
-# Salin file yang diperlukan termasuk .env
+# Copy the necessary files including .env
 COPY go.mod go.sum .env ./
 
-# Tampilkan daftar file di direktori kerja
+# Display the list of files in the working directory
 RUN ls -la
 
-# Unduh dependensi
+# Download dependencies
 RUN go mod download
 
-# Salin sisa kode sumber ke dalam container
+# Copy the rest of the source code into the container
 COPY . .
 
-# Bangun aplikasi Go dengan GO111MODULE=on
+# Build the Go application
 RUN go build -o myapp ./server/cmd
 
-# Stage 2: Setup the final image
+# Stage 2: Set up the final image
 FROM alpine:latest
 WORKDIR /root/
-# Pastikan file .env disalin ke lokasi yang benar
+# Copy the .env file to the correct location
 COPY --from=builder /app/.env /root/.env
 COPY --from=builder /app/myapp .
 CMD ["./myapp"]
