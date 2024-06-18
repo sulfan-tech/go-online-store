@@ -22,6 +22,12 @@ func main() {
 	if err != nil {
 		log.Fatal("Error loading .env file on main :" + err.Error())
 	}
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		log.Fatal("$PORT must be set")
+	}
+
 	log := logger.NewLogger(os.Stdout, "Main")
 
 	e := echo.New()
