@@ -22,9 +22,10 @@ type DatabaseConfig struct {
 
 // LoadDatabaseConfig loads the database configuration from environment variables
 func LoadDatabaseConfig() *DatabaseConfig {
-	err := godotenv.Load("../../.env")
+	// err := godotenv.Load("../../.env")
+	err := godotenv.Load("/root/.env")
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatal("Error loading .env file on load db")
 	}
 
 	return &DatabaseConfig{

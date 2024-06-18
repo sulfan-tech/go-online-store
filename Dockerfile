@@ -1,23 +1,28 @@
-# Use the official Golang image to create a build artifact
+# Gunakan image resmi Golang sebagai parent image
 FROM golang:1.20-alpine AS builder
+
+# Setel direktori kerja saat ini di dalam container
 WORKDIR /app
 
-# Copy go mod and sum files
-COPY go.mod go.sum ./
+# Salin file yang diperlukan termasuk .env
+COPY go.mod go.sum .env ./
+
+# Tampilkan daftar file di direktori kerja
+RUN ls -la
+
+# Unduh dependensi
 RUN go mod download
 
-# Copy the source code
+# Salin sisa kode sumber ke dalam container
 COPY . .
 
-# Build the Go app
-RUN GO111MODULE=on go build -o simple-main ./server/cmd
+# Bangun aplikasi Go dengan GO111MODULE=on
+RUN go build -o myapp ./server/cmd
 
-# Use the official Alpine image for a lean production image
+# Stage 2: Setup the final image
 FROM alpine:latest
 WORKDIR /root/
-
-# Copy the pre-built binary from the previous stage
-COPY --from=builder /app/simple-main /usr/local/bin/app
-
-# Command to run the executable
-CMD ["/usr/local/bin/app"]
+# Pastikan file .env disalin ke lokasi yang benar
+COPY --from=builder /app/.env /root/.env
+COPY --from=builder /app/myapp .
+CMD ["./myapp"]
