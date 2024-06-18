@@ -16,7 +16,7 @@ import (
 )
 
 func main() {
-	env := ".env"
+	env := "/root/.env"
 	// env := ".env"
 	err := godotenv.Load(env)
 	if err != nil {
