@@ -40,7 +40,11 @@ func main() {
 	}))
 
 	e = router.RegisterRouter(e, log)
-	e.Logger.Print("Server is running on port: " + os.Getenv("SERVER_PORT"))
-	log.Info("Server is running on port: " + os.Getenv("SERVER_PORT"))
-	e.Logger.Fatal(e.Start(":" + os.Getenv("SERVER_PORT")))
+	// e.Logger.Print("Server is running on port: " + os.Getenv("SERVER_PORT"))
+	// log.Info("Server is running on port: " + os.Getenv("SERVER_PORT"))
+	// e.Logger.Fatal(e.Start(":" + os.Getenv("SERVER_PORT")))
+
+	e.Logger.Print("Server is running on port: " + port)
+	log.Info("Server is running on port: " + port)
+	e.Logger.Fatal(e.Start(":" + port))
 }
