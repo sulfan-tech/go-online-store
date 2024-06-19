@@ -17,6 +17,7 @@ type ProductService struct {
 type ProductServiceImpl interface {
 	GetProductListByCategory(ctx context.Context, category string) ([]*model.Product, error)
 	GetProductById(ctx context.Context, productId uint) (*model.Product, error)
+	CreateProduct(ctx context.Context, product model.Product) (*model.Product, error)
 }
 
 func NewInstanceProductService() ProductServiceImpl {
@@ -52,4 +53,15 @@ func (productService *ProductService) GetProductById(ctx context.Context, produc
 		return nil, err
 	}
 	return product, nil
+}
+
+func (productService *ProductService) CreateProduct(ctx context.Context, product model.Product) (*model.Product, error) {
+	productService.logger.Info("Creating product")
+	err := productService.repoProduct.Create(&product)
+	if err != nil {
+		productService.logger.Error("Failed to create product")
+		return &product, err
+	}
+
+	return &product, nil
 }

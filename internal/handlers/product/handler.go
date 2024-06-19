@@ -3,6 +3,7 @@ package product
 import (
 	"net/http"
 
+	"go-online-store/internal/domain/product/model"
 	"go-online-store/internal/domain/product/service"
 	"go-online-store/pkg/errors"
 
@@ -44,4 +45,32 @@ func (h *ProductHandler) GetProductsByCategoryHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, products)
+}
+
+func (h *ProductHandler) CreateProduct(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	var req RequestProduct
+
+	if err := c.Bind(&req); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request payload")
+	}
+
+	newProduct := model.Product{
+		Name:     req.Name,
+		Category: req.Category,
+		Price:    req.Price,
+		Stok:     uint(req.Price),
+	}
+
+	product, err := h.productService.CreateProduct(ctx, newProduct)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to create product")
+	}
+
+	response := map[string]interface{}{
+		"data": product,
+	}
+
+	return c.JSON(http.StatusCreated, response)
 }
