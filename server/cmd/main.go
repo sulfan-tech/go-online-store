@@ -16,12 +16,18 @@ import (
 )
 
 func main() {
+	// env := "/root/.env"
 	env := ".env"
-	// env := ".env"
 	err := godotenv.Load(env)
 	if err != nil {
-		log.Fatal("Error loading .env file:" + err.Error())
+		log.Fatal("Error loading .env file on main :" + err.Error())
 	}
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		log.Fatal("$PORT must be set")
+	}
+
 	log := logger.NewLogger(os.Stdout, "Main")
 
 	e := echo.New()
@@ -34,7 +40,11 @@ func main() {
 	}))
 
 	e = router.RegisterRouter(e, log)
-	e.Logger.Print("Server is running on port: " + os.Getenv("SERVER_PORT"))
-	log.Info("Server is running on port: " + os.Getenv("SERVER_PORT"))
-	e.Logger.Fatal(e.Start(":" + os.Getenv("SERVER_PORT")))
+	// e.Logger.Print("Server is running on port: " + os.Getenv("SERVER_PORT"))
+	// log.Info("Server is running on port: " + os.Getenv("SERVER_PORT"))
+	// e.Logger.Fatal(e.Start(":" + os.Getenv("SERVER_PORT")))
+
+	e.Logger.Print("Server is running on port: " + port)
+	log.Info("Server is running on port: " + port)
+	e.Logger.Fatal(e.Start(":" + port))
 }

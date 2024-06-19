@@ -41,6 +41,7 @@ func RegisterRouter(e *echo.Echo, log *logger.Logger) *echo.Echo {
 
 	// Router for product
 	v1.GET("/products", jwt.ValidateJWT(productHandler.GetProductsByCategoryHandler))
+	v1.POST("/products", jwt.ValidateJWT(productHandler.CreateProduct))
 
 	// Routes for cart
 	v1.GET("/cart", jwt.ValidateJWT(cartHandler.GetCartHandler))
