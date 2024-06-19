@@ -100,7 +100,7 @@ go run cmd/api/main.go
 
 ## API Documentation
 
-For detailed API documentation, refer to [API Documentation]((https://sulfan.notion.site/create-an-online-store-application-API-d4aa504087334dc99740b357d9a8584e)). Include detailed explanations of each endpoint, parameters, request bodies, and responses.
+For detailed API documentation, refer to [API Documentation](https://sulfan.notion.site/create-an-online-store-application-API-d4aa504087334dc99740b357d9a8584e). Include detailed explanations of each endpoint, parameters, request bodies, and responses.
 
 ## Testing
 
